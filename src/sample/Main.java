@@ -4,39 +4,41 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class Main{
-
-    /*@Override
-    public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
-        primaryStage.setTitle("Hello World");
-        primaryStage.setScene(new Scene(root, 300, 275));
-        primaryStage.show();
-    }
-
-
-    public static void main(String[] args) {
-        launch(args);
-    }*/
     static HashMap<String, Double> productList = new HashMap<>();
+    static Double[] changePence = {0.01,0.02,0.05,0.10,0.20,0.50,1.0,2.0};
+    static List<Double> moneyCheck = new ArrayList<>(Arrays.asList(changePence));
     ArrayList<Integer> changeMoney = new ArrayList<>();
 
-    Integer[] changePence = {1,2,5,10,20,50};
-    Integer[] changePounds = {1,2};
+    //condition where customer needs change
+    public static String moreMoney(double input, double cost){
+        double difference = Math.abs(input-cost);
+        String finalPrint="";
+        Collections.sort(moneyCheck, Collections.reverseOrder());
+        ArrayList<Double> changeStore = new ArrayList();
 
-    public static int lessMoney(int input, int cost){
-
-        int difference = cost - input;
-        System.out.println(difference);
-        if(productList.containsKey(difference)){
-            return difference;
+        if(moneyCheck.contains(difference)){
+            //if the money is part of the array return itself
+            finalPrint = NumberFormat.getCurrencyInstance().format(Math.abs((difference)));
+        }
+        else{
+            for(int x=0; x<moneyCheck.size();x++){
+                if (difference >= moneyCheck.get(x)) {//if difference is big, keep reducing with it
+                    changeStore.add(moneyCheck.get(x));
+                    difference -= moneyCheck.get(x);
+                    x=x-1; //check again, in case we need double value of this x
+                }
+            }
         }
 
-        return 0;
-
+        for(Double x: changeStore){
+            StringBuilder sb = new StringBuilder();
+            sb.append(NumberFormat.getCurrencyInstance().format(Math.abs(x)));
+            finalPrint += sb;
+        }
+        return finalPrint;
     }
 
 
@@ -49,10 +51,9 @@ public class Main{
 
         double currentProduct = 0;
 
-
         System.out.println("Which product that you want? write cola chips or gum");
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-        String s, moneyinsert;
+        String s;
         s= in.readLine();
 
         if(!productList.containsKey(s)){
@@ -63,16 +64,23 @@ public class Main{
             System.out.println("Please insert this amount: " + productList.get(s));
         }
         double parseMoney = Double.parseDouble(in.readLine());
-        if(parseMoney < currentProduct){
-            System.out.println("Sorry not enough money, insert "+NumberFormat.getCurrencyInstance().format(Math.abs((parseMoney - currentProduct))) +" more");
 
+        while (parseMoney!=currentProduct) {
+            if (parseMoney < currentProduct) {
+                while (parseMoney < currentProduct) {
+                    System.out.println("Sorry not enough money, insert " + NumberFormat.getCurrencyInstance().format(Math.abs((parseMoney - currentProduct))) + " more");
+                    parseMoney += Double.parseDouble(in.readLine());//keep asking for money until it's enough
+                }
+            }
+            if (parseMoney > currentProduct) {
+                System.out.println(parseMoney);
+                System.out.println(currentProduct);
+                System.out.println("Here's your change of: " + moreMoney(parseMoney, currentProduct));
+                parseMoney = currentProduct; //to neutralize & get out of loop
+            }
         }
-        else if(parseMoney > currentProduct){
-
-        }
-
-        }
+        System.out.println("Thank You For Your Purchase");
 
     }
-
+}
 
