@@ -7,7 +7,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 public class Main{
-    static HashMap<String, Double> productList = new HashMap<>();
+    static TreeMap<String, Product> productList = new TreeMap<>();
     static Double[] changePence = {0.01,0.02,0.05,0.10,0.20,0.50,1.0,2.0};
     static List<Double> moneyCheck = new ArrayList<>(Arrays.asList(changePence));
     ArrayList<Integer> changeMoney = new ArrayList<>();
@@ -36,19 +36,28 @@ public class Main{
         for(Double x: changeStore){
             StringBuilder sb = new StringBuilder();
             sb.append(NumberFormat.getCurrencyInstance().format(Math.abs(x)));
+            sb.append(" ");
             finalPrint += sb;
         }
         return finalPrint;
     }
 
+    //outside thread that wants to add product, can be used in the future implementatin
+    synchronized public void addProduct(Product p)
+    {
+        productList.put(p.getKey(), p);
+        notifyAll();
+    }
 
-
+    //For the time purpose, in this case we can take that cola chips and gum are the only one available
     public static void main(String[] args) throws IOException {
-        //product List
-        productList.put("cola", 1.45);
-        productList.put("chips", 0.40);
-        productList.put("gum", 0.15);
-
+        //product List you can add or remove anything from here
+        final Product cola = new Product("cola",10,1.45);
+        final Product chips = new Product("chips",20,0.45);
+        final Product gum = new Product("gum", 40,0.15);
+        productList.put(cola.getKey(), cola);
+        productList.put(chips.getKey(), chips);
+        productList.put(gum.getKey(), gum);
         double currentProduct = 0;
 
         System.out.println("Which product that you want? write cola chips or gum");
@@ -60,8 +69,9 @@ public class Main{
             System.out.println("Sorry Product not available");
         }
         else {
-            currentProduct = productList.get(s);
-            System.out.println("Please insert this amount: " + productList.get(s));
+            Product obtainCost = productList.get(s);
+            currentProduct = obtainCost.getPrice();
+            System.out.println("Please insert this amount: " + obtainCost.getPrice());
         }
         double parseMoney = Double.parseDouble(in.readLine());
 
@@ -73,12 +83,11 @@ public class Main{
                 }
             }
             if (parseMoney > currentProduct) {
-                System.out.println(parseMoney);
-                System.out.println(currentProduct);
                 System.out.println("Here's your change of: " + moreMoney(parseMoney, currentProduct));
                 parseMoney = currentProduct; //to neutralize & get out of loop
             }
         }
+
         System.out.println("Thank You For Your Purchase");
 
     }
